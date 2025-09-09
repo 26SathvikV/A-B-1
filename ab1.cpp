@@ -31,7 +31,8 @@ double *h;
 double *F;
 
 //Weights
-double **w;
+double **Wkj;
+double **Wj0;
 
 //Training Params
 double weightHigh;
@@ -75,7 +76,7 @@ void hiddenLayerForwardPass(int k, int j)
     double Θ = 0;
     for (int index = 0; index < inputNodes; index++)
     {
-        Θ += a[index] * w[index][j];
+        Θ += a[index] * Wkj[index][j];
     }
 
     h[j] = activationFunction(Θ);
@@ -87,7 +88,7 @@ void outputLayerForwardPass(int k, int j)
     double Θ = 0;
     for (int index = 0; index < hiddenNodes; index++)
     {
-        Θ += h[index] * w[index][0];
+        Θ += h[index] * Wj0[index][0];
     }
 
     F[0] = activationFunction(Θ);
@@ -105,13 +106,13 @@ void outputLayerBackwardPass(int k, int j, int expected, double Θ)
 
     double dW = -1 * l * weightGrad;
 
-    w[j][0] += dW;
+    Wj0[j][0] += dW;
 }
 
 //Hidden Layer Backward Pass
 void hiddenLayerBackwardPass(int k, int j, double Θ, double ψ)
 {
-    double Ω = ψ * w[j][0];
+    double Ω = ψ * Wj0[j][0];
 
     double Ψ = Ω * activationFunctionDerivative(Θ);
 
@@ -144,19 +145,33 @@ void setParams(int activationLayers, int hiddenLayers, int outputLayers, double 
     h = new double[hiddenNodes];
     F = new double[outputNodes];
 
-    setWeights(wLow, wHigh);
+    setWkj(wLow, wHigh);
 }
 
-//Sets the weights
-void setWeights(double wLow, double wHigh)
+//Sets the weights for the input → hidden
+void setWkj(double wLow, double wHigh)
 {
-    w = new double*[inputNodes];
+    Wkj = new double*[inputNodes];
     for (int fIndex = 0; fIndex < inputNodes; fIndex++)
     {
-        w[fIndex] = new double[hiddenNodes];
+        Wkj[fIndex] = new double[hiddenNodes];
         for (int sIndex = 0; sIndex < hiddenNodes; sIndex++)
         {
-            w[fIndex][sIndex] = random(weightLow, weightHigh);
+            Wkj[fIndex][sIndex] = random(weightLow, weightHigh);
+        }
+    }
+}
+
+//Sets the weights for the hidden → output
+void setWj0(double wLow, double wHigh)
+{
+    Wj0 = new double*[hiddenNodes];
+    for (int fIndex = 0; fIndex < hiddenNodes; fIndex++)
+    {
+        Wj0[fIndex] = new double[outputNodes];
+        for (int sIndex = 0; sIndex < outputNodes; sIndex++)
+        {
+            Wj0[fIndex][sIndex] = random(weightLow, weightHigh);
         }
     }
 }
