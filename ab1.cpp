@@ -121,8 +121,6 @@ void hiddenLayerBackwardPass(int k, int j, double Θ, double ψ)
 
     w[k][j] += dW;
 }
-    }
-}
 
 
 
