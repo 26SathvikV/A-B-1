@@ -1,222 +1,277 @@
 //* Trains & Runs an A-B-1 AI Network using Steepest Gradient Descent
 
-#include "helperFunctions.h"
 #include <iostream>
 #include <fstream>
 using namespace std;
 
 
+//Divisions of the code for organization purposes
 
-//Variables
-
-//Are we training?
-bool inTraining = true;
-
-//Checks
-bool printActivations = true;
-bool printHidden = true;
-bool printOutputs = true;
-bool printWeights = true;
-bool printTable = true;
-bool printTraining = true;
-
-//Max Layers
-int inputNodes;
-int hiddenNodes;
-int outputNodes;
-
-//Layer Arrays
-double *a;
-double *h;
-double *F;
-
-//Weights
-double **Wkj;
-double **Wj0;
-
-//Training Params
-double weightHigh;
-double weightLow;
-int maxIterations;
-int errorThreshold;
-double l = 0.5;
-bool truthTable[2][2] = {{0,0},{0,1}}; // AND
-int expected;
-
-
-
-//Specific Helper Functions
-
-//Activation Function
-double activationFunction(unsigned x)
-{
-    return sigmoid(x);
-}
-
-
-//Derivative of the Activation Function
-double activationFunctionDerivative(unsigned x)
-{
-    return derivative(sigmoid, x, 0.0001);
-}
-
-//Error Function
-double errorFunction(unsigned target, unsigned output)
-{
-    return simpleError(target, output);
-}
-
-
-
-//Learning Functions
-
-//Hidden Layer Forward Pass
-void hiddenLayerForwardPass(int k, int j)
-{
-    double Θ = 0;
-    for (int index = 0; index < inputNodes; index++)
-    {
-        Θ += a[index] * Wkj[index][j];
-    }
-
-    h[j] = activationFunction(Θ);
-}
-
-//Output Layer Forward Pass
-void outputLayerForwardPass(int k, int j)
-{
-    double Θ = 0;
-    for (int index = 0; index < hiddenNodes; index++)
-    {
-        Θ += h[index] * Wj0[index][0];
-    }
-
-    F[0] = activationFunction(Θ);
-}
-
-
-//Ouput Layer Backward Pass
-void outputLayerBackwardPass(int k, int j, int expected, double Θ)
-{
-    double ω = errorFunction(expected, F[0]);
-
-    double ψ = ω * activationFunctionDerivative(Θ);
-
-    double weightGrad = -1 * h[j] * ψ;
-
-    double dW = -1 * l * weightGrad;
-
-    Wj0[j][0] += dW;
-}
-
-//Hidden Layer Backward Pass
-void hiddenLayerBackwardPass(int k, int j, double Θ, double ψ)
-{
-    double Ω = ψ * Wj0[j][0];
-
-    double Ψ = Ω * activationFunctionDerivative(Θ);
-
-    double weightGrad = -1 * a[k] * Ψ;
-
-    double dW = -1 * l * weightGrad;
-
-    w[k][j] += dW;
-}
+#include "helpers/globalVariables.h" //Stores all the variables
+#include "helpers/helperFunctions.h" //Mathematical functions
+#include "helpers/specificHelpers.h" //Specific activation & error functions
+#include "helpers/learningFunctions.h" //Functions for learning
+#include "helpers/fileInterp.h" //Unused, holding space for file interpetration
 
 
 
 //Process Functions
 
-//Interprets the data in a file
-void interpFile(string name)
-{}
-
 //Sets the configuration parameters
 void setParams(int activationLayers, int hiddenLayers, int outputLayers, double wHigh, double wLow)
 {
+    if (printSteps)
+    {
+        cout << "Setting parameters...";
+    }
+
+    //Topology
     inputNodes = activationLayers;
     hiddenNodes = hiddenLayers;
     outputNodes = outputLayers;
 
+    //Weight Range
     weightHigh = wHigh;
     weightLow = wLow;
 
+    if (printSteps)
+    {
+        cout << "Parameters set!";
+    }
+}
+
+
+//Echoes the configuration parameters
+void echoParams()
+{
+    if (printSteps)
+    {
+        cout << "Echoing parameters...";
+        cout << "\n\n";
+    }
+
+    //Network Configuration
+    cout << "NETWORK CONFIGURATION";
+    cout << "-------------------------------------------";
+    cout << "Network Type: A-B-1"; //Change manually
+    cout << "Inputs (A): " << inputNodes;
+    cout << "Hidden Layers (B): " << hiddenNodes;
+    cout << "Outputs (C): " << outputNodes;
+    cout << "Activation Function: " << activationFunctionType;
+    cout << "\n\n";
+
+    //Runtime Params
+    cout << "RUNTIME PARAMETERS";
+    cout << "-------------------------------------------";
+    cout << "Training: " << inTraining;
+    cout << "Weight Source: RANDOM"; //Change manually if needed
+    cout << "Weight Range: " << weightLow << " - " << weightHigh;
+    cout << "Learning Rate (λ): " << l;
+    cout << "Maximum Iterations: " << maxIterations;
+    cout << "Error Threshold: " << errorThreshold;
+    cout << "Apply Weight Changes: store then apply"; //Change manually if needed
+    cout << "Truth Table \n" << truthTable;
+    cout << "\n\n";
+
+    //Memory Alloc
+    cout << "Memory Allocation";
+    cout << "-------------------------------------------";
+    cout << "a[] size: " << inputNodes;
+    cout << "h[] size: " << hiddenNodes;
+    cout << "F[] size: " << outputNodes;
+    cout << "\n";
+    cout << "Wkj: [" << inputNodes << "][" << hiddenNodes << "]";
+    cout << "Wj0: [" << hiddenNodes << "][" << outputNodes << "]";
+    cout << "\n";
+    cout << "Θh[] size: " << hiddenNodes;
+    cout << "ΘF[] size: " << outputNodes;
+    cout << "\n\n";
+    cout << "Parameters echoed!";
+}
+
+
+//Allocates memory for the network arrays
+void allocateMemory()
+{
+    if (printSteps)
+    {
+        cout << "Allocating memory...";
+    }
+
+    //Layers
     a = new double[inputNodes];
     h = new double[hiddenNodes];
     F = new double[outputNodes];
 
-    setWkj(wLow, wHigh);
-}
+    //Weights
+    make2dDoubleArray(Wkj, inputNodes, hiddenNodes);
+    make2dDoubleArray(Wj0, hiddenNodes, outputNodes);
+    make2dDoubleArray(dWkj, inputNodes, hiddenNodes);
+    make2dDoubleArray(dWj0, hiddenNodes, outputNodes);
 
-//Sets the weights for the input → hidden
-void setWkj(double wLow, double wHigh)
-{
-    Wkj = new double*[inputNodes];
-    for (int fIndex = 0; fIndex < inputNodes; fIndex++)
+    //Biases
+    Θh = new double[hiddenNodes];
+    ΘF = new double[outputNodes];
+
+    if (printSteps)
     {
-        Wkj[fIndex] = new double[hiddenNodes];
-        for (int sIndex = 0; sIndex < hiddenNodes; sIndex++)
-        {
-            Wkj[fIndex][sIndex] = random(weightLow, weightHigh);
-        }
+        cout << "Memory allocated!";
     }
 }
 
-//Sets the weights for the hidden → output
-void setWj0(double wLow, double wHigh)
-{
-    Wj0 = new double*[hiddenNodes];
-    for (int fIndex = 0; fIndex < hiddenNodes; fIndex++)
-    {
-        Wj0[fIndex] = new double[outputNodes];
-        for (int sIndex = 0; sIndex < outputNodes; sIndex++)
-        {
-            Wj0[fIndex][sIndex] = random(weightLow, weightHigh);
-        }
-    }
-}
-
-//Echoes the configuration parameters
-void echoParams()
-{}
-
-//Allocates memory for the network arrays
-void allocateMemory()
-{}
 
 //Populates the arrays
 void populateArrays()
 {
+    if (printSteps)
+    {
+        cout << "Populating arrays...";
+    }
 
+    //Fill the weights with random values
+    fillRandom2d(Wkj, weightLow, weightHigh);
+    fillRandom2d(Wj0, weightLow, weightHigh);
+
+    if (printSteps)
+    {
+        cout << "Arrays populated!";
+    }
 }
+
 
 //Trains & reports training results
 void train()
 {
-    
-    if (inTraining)
-    {
-        cout << weightHigh;
-        cout << weightLow;
-    }
-}
-
-//Runs all the test cases
-void runTests()
-{
-    if (inTraining)
+    if (printSteps)
     {
         cout << "Training...";
     }
+
+    int currIteration = 0;
+
+    //Training Loop
+    while (currIteration < maxIterations)
+    {
+        double sumError = 0.0;
+        
+        for (int index = 0; index < testInputRows; index++)
+        {
+            int *testCase = testInputs[index];
+            a[0] = testCase[0];
+            a[1] = testCase[1];
+            int expected = truthTable[testCase[0]][testCase[1]];
+
+            for (int j = 0; j < hiddenNodes; j++)
+            {
+                hiddenLayerForwardPass(index, j);
+            }
+            
+            for (int j = 0; j < outputNodes; j++)
+            {
+                outputLayerForwardPass(index, j);
+            }
+            
+            sumError += errorFunction(expected, F[0]);
+            
+            for (int j = 0; j < outputNodes; j++)
+            {
+                double ψ = outputLayerBackwardPass(index, j, expected);
+
+                for (int hidLayNum = 0; hidLayNum < hiddenNodes; hidLayNum++)
+                {
+                    hiddenLayerBackwardPass(index, hidLayNum, ψ);
+                }
+            }
+        }
+
+        double avgError = sumError/testInputRows;
+        currIteration++;
+        bool stoppedByError = false;
+        bool stoppedByIteration = false;
+
+        if (avgError <= errorThreshold)
+        {
+            stoppedByError = true;
+        }
+
+        if (currIteration >= maxIterations)
+        {
+            stoppedByIteration = true;
+        }
+        
+        if (printSteps)
+        {
+            if (stoppedByError && stoppedByIteration)
+            {
+                cout << "Stopped by error and maxed iterations";
+            }
+            else if (stoppedByError)
+            {
+                cout << "Stopped by error";
+            }
+            else
+            {
+                cout << "Stopped by iterations";
+            }
+        }
+
+        if (stoppedByError || stoppedByIteration)
+        {
+            break;
+        }
+    }
+
+    if (printSteps)
+    {
+        cout << "Trained!";
+    }
 }
 
+
+//Runs all the test cases
+double *runTests()
+{
+    if (printSteps)
+    {
+        cout << "Running tests...";
+    }
+
+    double *runOutputs = new double[outputNodes];
+
+    for (int index = 0; index < testInputRows; index++)
+    {
+        for (int n = 0; n < testInputCols; n++)
+        {
+            a[n] = testInputs[index][n];
+        }
+        for (int j = 0; j < hiddenNodes; j++)
+        {
+            hiddenLayerForwardPass(index, j);
+        }
+        for (int j = 0; j < outputNodes; j++)
+        {
+            outputLayerForwardPass(index,j);
+            runOutputs[j] = F[j];
+        }
+    }
+
+    if (printSteps)
+    {
+        cout << "Tests finished!";
+    }
+
+    return runOutputs;
+}
 
 
 
 //Main Function - runs all of the code that was built so far
-int main(int argc, char* argv[])
+int run(int argc, char* argv[])
 {
-    printf("Starting...");
+    if (printSteps)
+    {
+        printf("Starting...");
+    }
     
     //Initialize main function variables
     string pConfigFile = "configdata-and.txt";
@@ -234,5 +289,6 @@ int main(int argc, char* argv[])
     populateArrays();
     train();
     runTests();
+
     return 0;
 }
