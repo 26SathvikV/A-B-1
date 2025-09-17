@@ -361,6 +361,14 @@ int run(int argc, char* argv[])
     double* runOutputs = runTests();
 
     //Final prints
+    if (printWeights)
+    {
+        cout << "\nFinal Wkj:\n";
+        printArray2d(Wkj, inputNodes, hiddenNodes);
+
+        cout << "\nFinal Wj0:\n";
+        printArray2d(Wkj, hiddenNodes, outputNodes);
+    }
     if (printInputs)
     {
         cout << "\nInputs:\n";
