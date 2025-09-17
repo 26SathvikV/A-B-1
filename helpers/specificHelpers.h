@@ -1,4 +1,4 @@
-#include "helperFunctions.h";
+#include "helperFunctions.h"
 
 //Activation Function
 double activationFunction(unsigned x)

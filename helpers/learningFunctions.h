@@ -1,5 +1,4 @@
-#include "globalVariables.h";
-#include "helperFunctions.h"'
+#include "globalVariables.h"
 #include "specificHelpers.h"
 
 //Hidden Layer Forward Pass

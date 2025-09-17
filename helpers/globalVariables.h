@@ -2,13 +2,13 @@
 bool inTraining = true;
 
 //Checks
-bool printActivations = true;
-bool printHidden = true;
-bool printOutputs = true;
+bool printSteps = false;
+bool printAdvancedSteps = false;
+
+bool printTruth = true;
+bool printInputs = true;
+bool printTestInputs = false;
 bool printWeights = true;
-bool printTable = true;
-bool printTraining = true;
-bool printSteps = true;
 
 //Max Layers
 int inputNodes;
@@ -36,14 +36,22 @@ double weightLow;
 int maxIterations;
 int errorThreshold;
 double l = 0.5;
-const int testInputRows = 4;
-const int testInputCols = 2;
-int testInputs[testInputRows][testInputCols] = {{0,0},{0,1},{1,0},{1,1}};
-int truthTable[2][2] = {{0,0},{0,1}}; // AND
 int expected;
 
+//Test Inputs & Truth Table
+int testInputRows;
+int testInputCols;
+int **testInputs;
+
+int truthTableRows;
+int truthTableCols;
+double **truthTable;
+
 //Variables for Echo Params
-char* activationFunctionType = "sigmoid";
+string networkType = "A-B-1";
+string activationFunctionType = "sigmoid";
+string weightSource = "RANDOM";
+string weightChangesApplication = "store then apply";
 
 //Inputs
 int **inputs;

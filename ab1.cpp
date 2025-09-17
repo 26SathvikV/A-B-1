@@ -7,9 +7,6 @@ using namespace std;
 
 //Divisions of the code for organization purposes
 
-#include "helpers/globalVariables.h" //Stores all the variables
-#include "helpers/helperFunctions.h" //Mathematical functions
-#include "helpers/specificHelpers.h" //Specific activation & error functions
 #include "helpers/learningFunctions.h" //Functions for learning
 #include "helpers/fileInterp.h" //Unused, holding space for file interpetration
 
@@ -18,25 +15,47 @@ using namespace std;
 //Process Functions
 
 //Sets the configuration parameters
-void setParams(int activationLayers, int hiddenLayers, int outputLayers, double wHigh, double wLow)
+void setParams(int **inputs, int inpRows, int inpCols, double **truth, int tRows, int tCols)
 {
     if (printSteps)
     {
-        cout << "Setting parameters...";
+        cout << "Setting parameters...\n\n";
     }
 
     //Topology
-    inputNodes = activationLayers;
-    hiddenNodes = hiddenLayers;
-    outputNodes = outputLayers;
+    cout << "Activation layers (a): ";
+    cin >> inputNodes;
+    cout << "Hidden layers (h): ";
+    cin >> hiddenNodes;
+    cout << "Output layers (i): ";
+    cin >> outputNodes;
 
     //Weight Range
-    weightHigh = wHigh;
-    weightLow = wLow;
+    cout << "\nMinimum weight value: ";
+    cin >> weightLow;
+    cout << "Maximum weight value: ";
+    cin >> weightHigh;
+
+    //Learning Variables
+    cout << "\nLearning rate (l): ";
+    cin >> l;
+    cout << "Maximum iterations: ";
+    cin >> maxIterations;
+    cout << "Error threshold: ";
+    cin >> errorThreshold;
+
+    //Test Inputs & Truth Table
+    testInputRows = inpRows;
+    testInputCols = inpCols;
+    testInputs = inputs;
+    
+    truthTableRows = tRows;
+    truthTableCols = tCols;
+    truthTable = truth;
 
     if (printSteps)
     {
-        cout << "Parameters set!";
+        cout << "\nParameters set!\n\n";
     }
 }
 
@@ -46,47 +65,60 @@ void echoParams()
 {
     if (printSteps)
     {
-        cout << "Echoing parameters...";
-        cout << "\n\n";
+        cout << "Echoing parameters...\n\n";
     }
 
     //Network Configuration
-    cout << "NETWORK CONFIGURATION";
-    cout << "-------------------------------------------";
-    cout << "Network Type: A-B-1"; //Change manually
-    cout << "Inputs (A): " << inputNodes;
-    cout << "Hidden Layers (B): " << hiddenNodes;
-    cout << "Outputs (C): " << outputNodes;
-    cout << "Activation Function: " << activationFunctionType;
+    cout << "\n\n\nNETWORK CONFIGURATION\n";
+    cout << "-------------------------------------------\n";
+    cout << "Network Type: " << networkType << "\n"; //Change manually
+    cout << "Inputs (A): " << inputNodes << "\n";
+    cout << "Hidden Layers (B): " << hiddenNodes << "\n";
+    cout << "Outputs (C): " << outputNodes << "\n";
+    cout << "Activation Function: " << activationFunctionType << "\n";
+
+    if (printTruth)
+    {
+        cout << "Truth Table \n";
+        printArray2d(truthTable, truthTableRows, truthTableCols);
+        cout << "\n";
+    }
     cout << "\n\n";
 
     //Runtime Params
-    cout << "RUNTIME PARAMETERS";
-    cout << "-------------------------------------------";
-    cout << "Training: " << inTraining;
-    cout << "Weight Source: RANDOM"; //Change manually if needed
-    cout << "Weight Range: " << weightLow << " - " << weightHigh;
-    cout << "Learning Rate (λ): " << l;
-    cout << "Maximum Iterations: " << maxIterations;
-    cout << "Error Threshold: " << errorThreshold;
-    cout << "Apply Weight Changes: store then apply"; //Change manually if needed
-    cout << "Truth Table \n" << truthTable;
+    cout << "RUNTIME PARAMETERS\n";
+    cout << "-------------------------------------------\n";
+    cout << "Training: " << inTraining << "\n";
+    cout << "Weight Source: " << weightSource << "\n";
+    cout << "Weight Range: " << weightLow << " - " << weightHigh << "\n";
+    cout << "Learning Rate (λ): " << l << "\n";
+    cout << "Maximum Iterations: " << maxIterations << "\n";
+    cout << "Error Threshold: " << errorThreshold << "\n";
+    cout << "Apply Weight Changes: " << weightChangesApplication << "\n";
+
+    if (printInputs)
+    {
+        cout << "Test Inputs \n";
+        printArray2d(testInputs, testInputRows, testInputCols);
+        cout << "\n";
+    }
     cout << "\n\n";
 
     //Memory Alloc
-    cout << "Memory Allocation";
-    cout << "-------------------------------------------";
-    cout << "a[] size: " << inputNodes;
-    cout << "h[] size: " << hiddenNodes;
-    cout << "F[] size: " << outputNodes;
+    cout << "Memory Allocation\n";
+    cout << "-------------------------------------------\n";
+    cout << "a[] size: " << inputNodes << "\n";
+    cout << "h[] size: " << hiddenNodes << "\n";
+    cout << "F[] size: " << outputNodes << "\n";
     cout << "\n";
-    cout << "Wkj: [" << inputNodes << "][" << hiddenNodes << "]";
-    cout << "Wj0: [" << hiddenNodes << "][" << outputNodes << "]";
+    cout << "Wkj: [" << inputNodes << "][" << hiddenNodes << "]\n";
+    cout << "Wj0: [" << hiddenNodes << "][" << outputNodes << "]\n";
     cout << "\n";
-    cout << "Θh[] size: " << hiddenNodes;
-    cout << "ΘF[] size: " << outputNodes;
-    cout << "\n\n";
-    cout << "Parameters echoed!";
+    cout << "Θh[] size: " << hiddenNodes << "\n";
+    cout << "ΘF[] size: " << outputNodes << "\n";
+    
+    if (printSteps)
+        cout << "\n\nParameters echoed!\n\n\n";
 }
 
 
@@ -95,7 +127,7 @@ void allocateMemory()
 {
     if (printSteps)
     {
-        cout << "Allocating memory...";
+        cout << "Allocating memory...\n";
     }
 
     //Layers
@@ -104,10 +136,10 @@ void allocateMemory()
     F = new double[outputNodes];
 
     //Weights
-    make2dDoubleArray(Wkj, inputNodes, hiddenNodes);
-    make2dDoubleArray(Wj0, hiddenNodes, outputNodes);
-    make2dDoubleArray(dWkj, inputNodes, hiddenNodes);
-    make2dDoubleArray(dWj0, hiddenNodes, outputNodes);
+    Wkj = make2dDoubleArray(Wkj, inputNodes, hiddenNodes);
+    Wj0 = make2dDoubleArray(Wj0, hiddenNodes, outputNodes);
+    dWkj = make2dDoubleArray(dWkj, inputNodes, hiddenNodes);
+    dWj0 = make2dDoubleArray(dWj0, hiddenNodes, outputNodes);
 
     //Biases
     Θh = new double[hiddenNodes];
@@ -115,7 +147,7 @@ void allocateMemory()
 
     if (printSteps)
     {
-        cout << "Memory allocated!";
+        cout << "\nMemory allocated!\n\n";
     }
 }
 
@@ -125,16 +157,24 @@ void populateArrays()
 {
     if (printSteps)
     {
-        cout << "Populating arrays...";
+        cout << "Populating arrays...\n";
     }
 
     //Fill the weights with random values
-    fillRandom2d(Wkj, weightLow, weightHigh);
-    fillRandom2d(Wj0, weightLow, weightHigh);
+    fillRandom2d(Wkj, inputNodes, hiddenNodes, weightLow, weightHigh);
+    fillRandom2d(Wj0, hiddenNodes, outputNodes, weightLow, weightHigh);
+
+    if (printWeights)
+    {
+        cout << "Wkj:\n";
+        printArray2d(Wkj, inputNodes, hiddenNodes);
+        cout << "\n\nWj0:\n";
+        printArray2d(Wj0, hiddenNodes, outputNodes);
+    }
 
     if (printSteps)
     {
-        cout << "Arrays populated!";
+        cout << "\nArrays populated!\n\n";
     }
 }
 
@@ -144,7 +184,7 @@ void train()
 {
     if (printSteps)
     {
-        cout << "Training...";
+        cout << "Training...\n";
     }
 
     int currIteration = 0;
@@ -201,17 +241,25 @@ void train()
         
         if (printSteps)
         {
+            if (printAdvancedSteps || stoppedByError || stoppedByIteration)
+                cout << "Iteration " << currIteration << ": ";
+
             if (stoppedByError && stoppedByIteration)
             {
-                cout << "Stopped by error and maxed iterations";
+                cout << "Stopped by error and maxed iterations\n";
             }
             else if (stoppedByError)
             {
-                cout << "Stopped by error";
+                cout << "Stopped by error\n";
+            }
+            else if (stoppedByIteration)
+            {
+                cout << "Stopped by iterations\n";
             }
             else
             {
-                cout << "Stopped by iterations";
+                if (printAdvancedSteps)
+                    cout << "No issues \n";
             }
         }
 
@@ -223,7 +271,7 @@ void train()
 
     if (printSteps)
     {
-        cout << "Trained!";
+        cout << "\nTrained!\n\n";
     }
 }
 
@@ -233,7 +281,7 @@ double *runTests()
 {
     if (printSteps)
     {
-        cout << "Running tests...";
+        cout << "Running tests...\n";
     }
 
     double *runOutputs = new double[outputNodes];
@@ -257,7 +305,7 @@ double *runTests()
 
     if (printSteps)
     {
-        cout << "Tests finished!";
+        cout << "\nTests finished!\n\n";
     }
 
     return runOutputs;
@@ -265,12 +313,12 @@ double *runTests()
 
 
 
-//Main Function - runs all of the code that was built so far
+//Runs all of the code that was built so far
 int run(int argc, char* argv[])
 {
     if (printSteps)
     {
-        printf("Starting...");
+        printf("Starting...\n");
     }
     
     //Initialize main function variables
@@ -282,13 +330,72 @@ int run(int argc, char* argv[])
         pConfigFile = argv[1];
     t1 = clock();
 
+    const int testInputRows = 4;
+    const int testInputCols = 2;
+    int testInputsFile[testInputRows][testInputCols] = {{0,0}, {0,1}, {1,0}, {1,1}};
+    int **inputs;
+    inputs =  new int*[testInputRows];
+    for (int index = 0; index < testInputRows; index++)
+    {
+        inputs[index] = new int[2];
+        inputs[index] = testInputsFile[testInputCols];
+    }
+
+    const int truthRows = 2;
+    const int truthCols = 2;
+    double truthFile[truthRows][truthCols] = {{0.0, 0.0}, {0.0, 1.0}};
+    double **truth;
+    truth =  new double*[truthRows];
+    for (int index = 0; index < truthRows; index++)
+    {
+        truth[index] = new double[truthCols];
+        truth[index] = truthFile[index];
+    }
+
     //Runs all of the previous functions
-    setParams(2, 2, 1, 0.0, 1.0);
+    setParams(inputs, 2, 4, truth, 2, 2);
     echoParams();
     allocateMemory();
     populateArrays();
     train();
-    runTests();
+    double* runOutputs = runTests();
+
+    //Final prints
+    if (printInputs)
+    {
+        cout << "\nInputs:\n";
+        printArray(a, inputNodes);
+    }
+
+    if (printTestInputs)
+    {
+        cout << "\n\n\n\nTest Inputs:\n";
+        printArray2d(testInputs, testInputRows, testInputCols);
+    }
+
+    if (printTruth)
+    {
+        cout << "\nTruth Table:\n";
+        printArray2d(truth, truthRows, truthCols);
+    }
+    
+    cout << "\nTest Outputs:\n";
+    printArray(runOutputs, outputNodes);
+
+    cout << t1;
 
     return 0;
+}
+
+//Main function
+int main(int argc, char* argv[])
+{
+    run(argc, argv);
+    
+    string doWeEnd = "";
+    cout << "\n\nEnter \"quit\" to stop.\n";
+    cin >> doWeEnd;
+
+    if (doWeEnd == "quit")
+        return 0;
 }

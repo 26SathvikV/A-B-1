@@ -1,0 +1,1 @@
+g++ $(pkg-config --cflags --libs) -lwinmm ab1.cpp -o ab1.exe
