@@ -75,7 +75,7 @@ double randomRange(double start, double end)
 //Simple error function
 double simpleError(unsigned target, unsigned output)
 {
-    return 0.5 * ((target - output) ^ 2);
+    return 0.5 * (target - output) * (target - output);
 }
 
 //Makes a 2d double array from a pointer variable

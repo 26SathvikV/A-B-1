@@ -42,7 +42,6 @@ double outputLayerBackwardPass(int k, int j, int expected)
     double dW = -1 * l * weightGrad;
 
     dWj0[k][j] = dW;
-    Wj0[k][j] += dW;
 
     return ψ;
 }
@@ -61,5 +60,24 @@ void hiddenLayerBackwardPass(int k, int j, double ψ)
     double dW = -1 * l * weightGrad;
 
     dWkj[k][j] = dW;
-    Wkj[k][j] += dW;
+}
+
+//Applies all weight updates
+void applyWeightUpdates()
+{
+    for (int k = 0; k < inputNodes; k++)
+    {
+        for (int j = 0; j < hiddenNodes; j++)
+        {
+            Wkj[k][j] += dWkj[k][j];
+        }
+    }
+
+    for (int j = 0; j < hiddenNodes; j++)
+    {
+        for (int i = 0; i < outputNodes; i++)
+        {
+            Wj0[j][i] += dWj0[j][i];
+        }
+    }
 }

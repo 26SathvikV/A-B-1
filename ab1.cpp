@@ -224,6 +224,8 @@ void train()
             }
         }
 
+        applyWeightUpdates();
+
         double avgError = sumError/testInputRows;
         currIteration++;
         bool stoppedByError = false;
@@ -361,6 +363,7 @@ int run(int argc, char* argv[])
     double* runOutputs = runTests();
 
     //Final prints
+    cout << "\n\n\n";
     if (printWeights)
     {
         cout << "\nFinal Wkj:\n";
@@ -377,7 +380,7 @@ int run(int argc, char* argv[])
 
     if (printTestInputs)
     {
-        cout << "\n\n\n\nTest Inputs:\n";
+        cout << "\nTest Inputs:\n";
         printArray2d(testInputs, testInputRows, testInputCols);
     }
 
@@ -387,10 +390,10 @@ int run(int argc, char* argv[])
         printArray2d(truth, truthRows, truthCols);
     }
     
-    cout << "\nTest Outputs:\n";
+    cout << "\nOutputs:\n";
     printArray(runOutputs, outputNodes);
 
-    cout << t1;
+    //cout << t1;
 
     return 0;
 }
