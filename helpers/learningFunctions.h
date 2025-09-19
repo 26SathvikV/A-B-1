@@ -1,7 +1,14 @@
 #include "globalVariables.h"
 #include "specificHelpers.h"
 
-//Hidden Layer Forward Pass
+
+
+/**
+ * Hidden Layer Forward Pass
+ * 
+ * @param k           input node index
+ * @param j           hidden node index
+ */
 void hiddenLayerForwardPass(int k, int j)
 {
     double Θ = 0;
@@ -12,9 +19,15 @@ void hiddenLayerForwardPass(int k, int j)
 
     h[j] = activationFunction(Θ);
     Θh[j] = Θ;
-}
+} //hiddenLayerForwardPass(int k, int j)
 
-//Output Layer Forward Pass
+
+/**
+ * Output Layer Forward Pass
+ * 
+ * @param k           input node index
+ * @param j           hidden node index
+ */
 void outputLayerForwardPass(int k, int j)
 {
     double Θ = 0;
@@ -25,10 +38,16 @@ void outputLayerForwardPass(int k, int j)
 
     F[j] = activationFunction(Θ);
     ΘF[j] = Θ;
-}
+} //outputLayerForwardPass(int k, int j)
 
 
-//Ouput Layer Backward Pass
+/**
+ * Ouput Layer Backward Pass
+ * 
+ * @param k           input node index
+ * @param j           hidden node index
+ * @param expected    expected value
+ */
 double outputLayerBackwardPass(int k, int j, int expected)
 {
     double Θ = ΘF[j];
@@ -44,9 +63,16 @@ double outputLayerBackwardPass(int k, int j, int expected)
     dWj0[k][j] = dW;
 
     return ψ;
-}
+} //outputLayerBackwardPass(int k, int j, int expected)
 
-//Hidden Layer Backward Pass
+
+/**
+ * Hidden Layer Backward Pass
+ * 
+ * @param k    input node index
+ * @param j    hidden node index
+ * @param ψ    error signal at the output node
+ */
 void hiddenLayerBackwardPass(int k, int j, double ψ)
 {
     double Θ = Θh[j];
@@ -60,9 +86,12 @@ void hiddenLayerBackwardPass(int k, int j, double ψ)
     double dW = -1 * l * weightGrad;
 
     dWkj[k][j] = dW;
-}
+} //hiddenLayerBackwardPass(int k, int j, double ψ)
 
-//Applies all weight updates
+
+/**
+ * Applies all weight updates
+ */
 void applyWeightUpdates()
 {
     for (int k = 0; k < inputNodes; k++)
@@ -80,4 +109,4 @@ void applyWeightUpdates()
             Wj0[j][i] += dWj0[j][i];
         }
     }
-}
+} //applyWeightUpdates()

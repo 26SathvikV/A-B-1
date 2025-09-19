@@ -1,36 +1,56 @@
-//Are we training?
+/**
+ * Are we training?
+ */
 bool inTraining = true;
 
-//Checks
+
+/**
+ * Various print customizations
+ */
 bool printSteps = false;
 bool printAdvancedSteps = false;
 
-bool printTruth = true;
-bool printInputs = true;
+bool printTruth = false;
+bool printInputs = false;
 bool printTestInputs = false;
-bool printWeights = true;
+bool printWeights = false;
 
-//Max Layers
+
+/**
+ * Defines the lengths of the input, hidden, and output layers
+ */
 int inputNodes;
 int hiddenNodes;
 int outputNodes;
 
-//Layer Arrays
+
+/**
+ * Stores the values in the input, hidden, and output layers
+ */
 double *a;
 double *h;
 double *F;
 
-//Weights
+
+/**
+ * Defines the appropriate weights and their changes during training
+ */
 double **Wkj;
 double **Wj0;
 double **dWkj;
 double **dWj0;
 
-//Biases
+
+/**
+ * Defines the biases
+ */
 double *Θh;
 double *ΘF;
 
-//Training Params
+
+/**
+ * Variables related to training
+ */
 double weightHigh;
 double weightLow;
 int maxIterations;
@@ -38,7 +58,10 @@ int errorThreshold;
 double l = 0.5;
 int expected;
 
-//Test Inputs & Truth Table
+
+/**
+ * Test Inputs & Truth Table
+ */
 int testInputRows;
 int testInputCols;
 int **testInputs;
@@ -47,11 +70,17 @@ int truthTableRows;
 int truthTableCols;
 double **truthTable;
 
-//Variables for Echo Params
+
+/**
+ * Variables for echoParams()
+ */
 string networkType = "A-B-1";
 string activationFunctionType = "sigmoid";
 string weightSource = "RANDOM";
 string weightChangesApplication = "store then apply";
 
-//Inputs
+
+/**
+ * Inputs
+ */
 int **inputs;
